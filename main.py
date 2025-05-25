@@ -4,7 +4,7 @@ import requests
 
 app = Flask(__name__)
 
-WEBHOOK_URL = "https://eoz2txbodifdboq.m.pipedream.net"  # replace with yours
+WEBHOOK_URL = "https://eo4aqd880uqknq7.m.pipedream.net"  # replace with yours
 
 @app.route("/")
 def index():
